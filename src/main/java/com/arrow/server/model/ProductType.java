@@ -1,4 +1,7 @@
 package com.arrow.server.model;
 
-public interface ProductType {
+public enum ProductType {
+    BUFFERED,
+    BARRIER,
+    AUTOCALL
 }

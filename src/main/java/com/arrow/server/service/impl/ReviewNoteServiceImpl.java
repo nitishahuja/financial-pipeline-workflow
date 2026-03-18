@@ -1,13 +1,15 @@
-package com.arrow.server.service;
+package com.arrow.server.service.impl;
 
 import com.arrow.server.dto.CreateReviewRequest;
 import com.arrow.server.dto.ReviewNoteResponse;
 import com.arrow.server.exception.ResourceNotFoundException;
 import com.arrow.server.model.Product;
+import com.arrow.server.model.ProductStatus;
 import com.arrow.server.model.ReviewDecision;
 import com.arrow.server.model.ReviewNote;
 import com.arrow.server.repository.ProductRepository;
 import com.arrow.server.repository.ReviewNoteRepository;
+import com.arrow.server.service.ReviewNoteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,11 +20,14 @@ import java.util.stream.Collectors;
 @Service
 public class ReviewNoteServiceImpl implements ReviewNoteService {
 
-    @Autowired
-    private ReviewNoteRepository reviewNoteRepository;
+    private final ReviewNoteRepository reviewNoteRepository;
+    private final ProductRepository productRepository;
 
-    @Autowired
-    private ProductRepository productRepository;
+    public ReviewNoteServiceImpl(ReviewNoteRepository reviewNoteRepository,
+                                 ProductRepository productRepository) {
+        this.reviewNoteRepository = reviewNoteRepository;
+        this.productRepository = productRepository;
+    }
 
     // ── helper: Entity → DTO ──────────────────────
     private ReviewNoteResponse toResponse(ReviewNote note) {
@@ -47,14 +52,25 @@ public class ReviewNoteServiceImpl implements ReviewNoteService {
             throw new IllegalArgumentException("Reviewer name is required");
         }
 
+        // create and save the review note
         ReviewNote note = new ReviewNote(
                 product,
                 request.getReviewerName(),
                 request.getComment(),
                 request.getReviewDecision()
         );
+        reviewNoteRepository.save(note);
 
-        return toResponse(reviewNoteRepository.save(note));
+        // automatically update product status based on decision
+        switch (request.getReviewDecision()) {
+            case APPROVE -> product.setStatus(ProductStatus.APPROVED);
+            case REJECT  -> product.setStatus(ProductStatus.REJECTED);
+            case NEEDS_MORE_INFO -> product.setStatus(ProductStatus.UNDER_REVIEW);
+        }
+
+        productRepository.save(product);
+
+        return toResponse(note);
     }
 
     // ── GET REVIEWS BY PRODUCT ────────────────────

@@ -1,4 +1,4 @@
-package com.arrow.server.service;
+package com.arrow.server.service.impl;
 
 import com.arrow.server.dto.CreateProductRequest;
 import com.arrow.server.dto.ProductResponse;
@@ -8,6 +8,7 @@ import com.arrow.server.model.ProductStatus;
 import com.arrow.server.model.ProductType;
 import com.arrow.server.repository.ProductRepository;
 import com.arrow.server.repository.ReviewNoteRepository;
+import com.arrow.server.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,12 +19,11 @@ import java.util.stream.Collectors;
 @Service
 public class ProductServiceImpl implements ProductService {
 
-    // all the actual logic goes here
-    @Autowired
-    ProductRepository productRepository;
+    private final ProductRepository productRepository;
 
-    @Autowired
-    ReviewNoteRepository reviewNoteRepository;
+    public ProductServiceImpl(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
 
     private ProductResponse toResponse(Product product) {
         ProductResponse response = new ProductResponse();
@@ -107,8 +107,9 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public List<ProductResponse> getProductsByIssuer(String issuer) {
-        return productRepository.findByIssuer(issuer)
+        return productRepository.findAll()
                 .stream()
+                .filter(p -> p.getIssuer().toLowerCase().contains(issuer.toLowerCase()))
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
