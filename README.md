@@ -1,6 +1,6 @@
 # financial-pipeline-workflow
 
-A **Product Approval Pipeline API** built with Spring Boot and PostgreSQL — inspired by the structured investment product approval workflows used by firms like Arrow IA for enterprise clients such as LPL Financial and Raymond James.
+A **Product Approval Pipeline API** built with Spring Boot and PostgreSQL
 
 The platform manages the full lifecycle of a structured investment product from submission through compliance review to final approval or rejection — providing financial analysts with a clean, auditable trail of every decision made.
 
